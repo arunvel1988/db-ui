@@ -1,0 +1,37 @@
+mongosh -u user -p --authenticationDatabase admin
+
+use testdb
+db.testcoll.insertOne({ name: "Arunvel", role: "Instructor" })
+db.testcoll.find()
+
+
+use employees
+
+db.employees.insertMany([
+  {
+    emp_no: 1001,
+    first_name: "fname1",
+    last_name: "lname1",
+    birth_date: "1990-01-15",
+    hire_date: "2015-06-01",
+    gender: "M"
+  },
+  {
+    emp_no: 1002,
+    first_name: "fname2",
+    last_name: "lname2",
+    birth_date: "1988-03-22",
+    hire_date: "2013-04-12",
+    gender: "F"
+  },
+  {
+    emp_no: 1003,
+    first_name: "Arun",
+    last_name: "chettiar",
+    birth_date: "1987-07-29",
+    hire_date: "2012-08-01",
+    gender: "M"
+  }
+])
+
+
