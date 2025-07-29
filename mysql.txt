@@ -6,12 +6,16 @@ mysql> SHOW DATABASES;
 
 CREATE DATABASE my_app_db;
 
-
+#####################################################
 CREATE USER 'myappuser'@'%' IDENTIFIED BY 'app_password';
 GRANT ALL PRIVILEGES ON my_app_db.* TO 'myappuser'@'%';
 FLUSH PRIVILEGES;
-
+#########################################################
 CREATE DATABASE IF NOT EXISTS employees;
+CREATE USER 'emp'@'%' IDENTIFIED BY 'emp_password';
+GRANT ALL PRIVILEGES ON employees.* TO 'emp'@'%';
+
+#######################################################
 USE employees;
 
 CREATE TABLE departments (
