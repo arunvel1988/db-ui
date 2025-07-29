@@ -1,0 +1,6 @@
+mysqldump -u root -p employees > employees_backup.sql
+
+
+
+DROP DATABASE employees;
+
