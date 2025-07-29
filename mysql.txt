@@ -1,0 +1,140 @@
+mysql -u user -p
+
+
+mysql> SHOW DATABASES;
+
+
+CREATE DATABASE my_app_db;
+
+
+CREATE USER 'myappuser'@'%' IDENTIFIED BY 'app_password';
+GRANT ALL PRIVILEGES ON my_app_db.* TO 'myappuser'@'%';
+FLUSH PRIVILEGES;
+
+CREATE DATABASE IF NOT EXISTS employees;
+USE employees;
+
+CREATE TABLE departments (
+    dept_no CHAR(4) PRIMARY KEY,
+    dept_name VARCHAR(40) NOT NULL UNIQUE
+);
+
+CREATE TABLE employees (
+    emp_no INT PRIMARY KEY,
+    birth_date DATE NOT NULL,
+    first_name VARCHAR(14) NOT NULL,
+    last_name VARCHAR(16) NOT NULL,
+    gender ENUM('M', 'F') NOT NULL,
+    hire_date DATE NOT NULL
+);
+
+CREATE TABLE dept_emp (
+    emp_no INT,
+    dept_no CHAR(4),
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+    PRIMARY KEY (emp_no, dept_no),
+    FOREIGN KEY (emp_no) REFERENCES employees(emp_no),
+    FOREIGN KEY (dept_no) REFERENCES departments(dept_no)
+);
+-- Departments
+INSERT INTO departments VALUES ('d001', 'Marketing');
+INSERT INTO departments VALUES ('d002', 'Finance');
+INSERT INTO departments VALUES ('d003', 'HR');
+
+-- Employees
+INSERT INTO employees VALUES
+(1001, '1980-06-25', 'Alice', 'Smith', 'F', '2005-01-15'),
+(1002, '1975-07-14', 'Bob', 'Brown', 'M', '2003-03-12'),
+(1003, '1990-12-03', 'Charlie', 'Davis', 'M', '2010-11-20');
+
+-- Department-Employee mapping
+INSERT INTO dept_emp VALUES
+(1001, 'd001', '2005-01-15', '2025-12-31'),
+(1002, 'd002', '2003-03-12', '2025-12-31'),
+(1003, 'd003', '2010-11-20', '2025-12-31');
+
+
+
+SELECT * FROM employees;
+SELECT e.first_name, e.last_name, d.dept_name
+FROM employees e
+JOIN dept_emp de ON e.emp_no = de.emp_no
+JOIN departments d ON de.dept_no = d.dept_no;
+
+
+
+#####################################
+
+
+DELIMITER //
+
+CREATE PROCEDURE AddEmployee (
+    IN emp_id INT,
+    IN bdate DATE,
+    IN fname VARCHAR(14),
+    IN lname VARCHAR(16),
+    IN gen ENUM('M','F'),
+    IN hdate DATE,
+    IN dept CHAR(4),
+    IN from_d DATE,
+    IN to_d DATE
+)
+BEGIN
+    INSERT INTO employees VALUES (emp_id, bdate, fname, lname, gen, hdate);
+    INSERT INTO dept_emp VALUES (emp_id, dept, from_d, to_d);
+END //
+
+DELIMITER ;
+
+##############################################
+
+CALL AddEmployee(1004, '1988-04-12', 'David', 'Green', 'M', '2015-06-01', 'd001', '2015-06-01', '2025-12-31');
+
+##################################3
+
+CREATE VIEW employee_department AS
+SELECT
+    e.emp_no,
+    e.first_name,
+    e.last_name,
+    d.dept_name
+FROM employees e
+JOIN dept_emp de ON e.emp_no = de.emp_no
+JOIN departments d ON de.dept_no = d.dept_no;
+
+
+######################################
+
+SELECT * FROM employee_department;
+
+########################################
+
+CREATE TABLE emp_audit (
+    emp_no INT,
+    deleted_at DATETIME
+);
+########################################
+
+DELIMITER //
+
+
+
+CREATE TRIGGER before_employee_delete
+BEFORE DELETE ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO emp_audit (emp_no, deleted_at)
+    VALUES (OLD.emp_no, NOW());
+END //
+
+DELIMITER ;
+
+###########################################
+
+DELETE FROM employees WHERE emp_no = 1002;
+
+-- Check audit log
+SELECT * FROM emp_audit;
+
+
