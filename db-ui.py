@@ -329,7 +329,7 @@ def list_sql_db():
     for c in client.containers.list():
         try:
             if c.image.tags and (
-                c.image.tags[0].startswith("redhat/ubi") or 
+                c.image.tags[0].startswith("mysql") or 
                 "arunvel1988/rhel" in c.image.tags[0]
             ):
                 version = c.image.tags[0].split(":")[0].split("/")[-1]
@@ -354,7 +354,7 @@ def list_nosql_db():
     containers = []
     for c in client.containers.list():
         try:
-            if c.image.tags and "ubuntu" in c.image.tags[0]:
+            if c.image.tags and "mongo" in c.image.tags[0]:
                 version = c.image.tags[0].split(":")[0].split("/")[-1]
                 containers.append({
                     "name": c.name,
