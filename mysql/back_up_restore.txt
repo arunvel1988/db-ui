@@ -1,6 +1,12 @@
 mysqldump -u root -p employees > employees_backup.sql
 
-
+mysql -uroot -prootpass
 
 DROP DATABASE employees;
+
+mysql -u root -p -e "CREATE DATABASE employees;"
+
+
+mysql -u root -p employees < employees_backup.sql
+
 
