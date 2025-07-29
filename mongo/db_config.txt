@@ -1,0 +1,7 @@
+host=localhost
+port=4461
+username=user
+password=pass123
+auth_db=admin
+db_name=employees
+collection=employees
