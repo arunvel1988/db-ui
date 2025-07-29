@@ -1,4 +1,4 @@
-mysql -u user -p
+mysql -uroot -prootpass
 
 
 mysql> SHOW DATABASES;
