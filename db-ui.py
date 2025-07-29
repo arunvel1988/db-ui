@@ -302,7 +302,7 @@ def nosql_database():
     if request.method == "POST":
         version = request.form["version"]  # e.g. mongodb or redis
         name = request.form["name"].strip() or generate_random_name("nosqldb")
-        path, container, db_port = create_nosql_compose_file(version, name)
+        path, container, db_port = create_sql_compose_file(version, name)
         run_docker_compose(path, container)
         return render_template("success.html", os_type="NoSQL Database", version=version, container=container, rdp=db_port, web=None)
     return render_template("nosql_database.html")
