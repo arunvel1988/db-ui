@@ -1,0 +1,19 @@
+mongodump \
+  --host localhost \
+  --port 27017 \
+  --username user \
+  --password pass123 \
+  --authenticationDatabase admin \
+  --db employees \
+  --out /backups/
+
+
+
+mongorestore \
+  --host localhost \
+  --port 27017 \
+  --username user \
+  --password pass123 \
+  --authenticationDatabase admin \
+  --db employees \
+  --drop /backups/employees/
