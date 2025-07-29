@@ -251,6 +251,17 @@ def create_sql_compose_file(version, container_name):
       - MONGO_INITDB_ROOT_PASSWORD=pass123
 """
 
+    elif "icr.io/db2_community/db2" in image_name:
+        environment = """
+    environment:
+      - LICENSE=accept
+      - DB2INST1_PASSWORD=pass123
+      - DBNAME=testdb
+      - BLU=false
+      - ENABLE_ORACLE_COMPATIBILITY=false
+"""
+
+
     compose_content = f"""
 version: '3.7'
 services:
