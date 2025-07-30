@@ -98,7 +98,8 @@ db2 "DROP TABLE employees"
 mkdir -p $HOME/db2data_primary
 mkdir -p $HOME/db2data_standby
 chmod -R 777 $HOME/db2data_*
-
+chown -R db2inst1:db2iadm1 /database
+chmod 755 /database
 
 docker run -itd \
   --name db2_primary \
