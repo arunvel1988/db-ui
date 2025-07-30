@@ -1,0 +1,8 @@
+# Download from IBM site or use Docker
+docker pull ibmcom/db2
+
+# Run Db2 container
+docker run -itd --name db2 \
+  -e DB2INST1_PASSWORD=db2pass \
+  -e LICENSE=accept \
+  -p 50000:50000 ibmcom/db2
