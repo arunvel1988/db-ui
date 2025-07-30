@@ -160,7 +160,8 @@ db2 update db cfg for empdb using HADR_SYNCMODE NEARSYNC
 db2 update db cfg for empdb using LOGINDEXBUILD ON
 db2 backup db empdb to /database
 
-
+docker exec -it db2_primary ls -l /database
+docker cp db2_primary:/database/EMPDB.0.db2inst1.DBPART000.20250730071720.001 $HOME/db2data_standby/
 docker cp db2_primary:/database/empdb.* $HOME/db2data_standby/
 
 docker exec -it db2_standby bash
