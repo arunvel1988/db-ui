@@ -1,8 +1,199 @@
 # Download from IBM site or use Docker
-docker pull ibmcom/db2
 
-# Run Db2 container
-docker run -itd --name db2 \
-  -e DB2INST1_PASSWORD=db2pass \
+mkdir -p $HOME/db2data
+chmod -R 777 $HOME/db2data
+
+
+docker run -itd \
+  --name mydb2 \
+  --privileged=true \
+  -p 50000:50000 \
   -e LICENSE=accept \
-  -p 50000:50000 ibmcom/db2
+  -e DB2INST1_PASSWORD=db2pass \
+  -e DBNAME=testdb \
+  -v $HOME/db2data:/database \
+  ibmcom/db2
+
+
+
+
+
+
+docker exec -it mydb2 bash
+
+
+su - db2inst1
+
+
+db2start
+
+db2 list db directory
+
+db2 create database testdb
+
+db2 connect to testdb
+db2 connect reset
+db2 get db cfg for testdb
+db2 update db cfg for testdb using LOGFILSIZ 1024
+
+db2 "CREATE TABLE employees (
+  emp_id INTEGER NOT NULL PRIMARY KEY,
+  name VARCHAR(100),
+  role VARCHAR(50),
+  salary DECIMAL(10,2)
+)"
+
+
+##############################################3
+
+db2 connect to testdb && \
+db2 "CREATE TABLE employees (
+  emp_id INTEGER NOT NULL PRIMARY KEY,
+  name VARCHAR(100),
+  role VARCHAR(50),
+  salary DECIMAL(10,2)
+)"
+
+
+################################################
+
+db2 "INSERT INTO employees (emp_id, name, role, salary) VALUES 
+  (1, 'user1', 'Manager', 85000.50),
+  (2, 'user2', 'Developer', 65000.00),
+  (3, 'user3', 'Analyst', 55000.75),
+  (4, 'user4', 'Intern', 30000.00)"
+
+################################################
+
+db2 "SELECT * FROM employees"
+
+
+db2 "UPDATE employees SET salary = 70000.00 WHERE emp_id = 2"
+
+
+db2 "DELETE FROM employees WHERE emp_id = 4"
+
+db2 "DESCRIBE TABLE employees"
+
+db2 "RUNSTATS ON TABLE employees WITH DISTRIBUTION AND DETAILED INDEXES ALL"
+db2 "CREATE SCHEMA hr AUTHORIZATION db2inst1"
+db2 "CREATE TABLE departments (
+  dept_id INT PRIMARY KEY,
+  dept_name VARCHAR(50)
+)"
+
+db2 "ALTER TABLE employees ADD COLUMN dept_id INT"
+
+db2 "ALTER TABLE employees ADD CONSTRAINT fk_dept FOREIGN KEY(dept_id) REFERENCES departments(dept_id)"
+db2 backup db testdb to /backupdir
+db2 restore db testdb from /backupdir
+db2 get snapshot for database on testdb
+
+
+
+db2 "DROP TABLE employees"
+################################################################################3
+
+
+mkdir -p $HOME/db2data_primary
+mkdir -p $HOME/db2data_standby
+chmod -R 777 $HOME/db2data_*
+
+
+docker run -itd \
+  --name db2_primary \
+  --privileged=true \
+  -p 50000:50000 \
+  -e LICENSE=accept \
+  -e DB2INST1_PASSWORD=db2pass \
+  -e DBNAME=empdb \
+  -v $HOME/db2data_primary:/database \
+  ibmcom/db2
+
+
+docker run -itd \
+  --name db2_standby \
+  --privileged=true \
+  -p 50001:50000 \
+  -e LICENSE=accept \
+  -e DB2INST1_PASSWORD=db2pass \
+  -e DBNAME=empdb \
+  -v $HOME/db2data_standby:/database \
+  ibmcom/db2
+
+
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db2_primary
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db2_standby
+
+# in host machine
+echo "172.18.0.2 db2_primary" | sudo tee -a /etc/hosts
+echo "172.18.0.3 db2_standby" | sudo tee -a /etc/hosts
+
+
+
+docker exec -it db2_primary bash
+su - db2inst1
+db2 update dbm cfg using SVCENAME 50000
+db2stop
+db2start
+exit
+exit
+
+
+docker exec -it db2_standby bash
+su - db2inst1
+db2 update dbm cfg using SVCENAME 50000
+db2stop
+db2start
+exit
+exit
+
+
+docker exec -it db2_primary bash
+su - db2inst1
+db2 update db cfg for empdb using HADR_LOCAL_HOST db2_primary
+db2 update db cfg for empdb using HADR_REMOTE_HOST db2_standby
+db2 update db cfg for empdb using HADR_REMOTE_INST db2inst1
+db2 update db cfg for empdb using HADR_REMOTE_SVC 50000
+db2 update db cfg for empdb using HADR_SYNCMODE NEARSYNC
+db2 update db cfg for empdb using LOGINDEXBUILD ON
+db2 backup db empdb to /database
+
+
+docker cp db2_primary:/database/empdb.* $HOME/db2data_standby/
+
+docker exec -it db2_standby bash
+su - db2inst1
+
+db2 restore db empdb from /database taken at <timestamp> into empdb
+# Use actual timestamp from backup filename
+
+db2 update db cfg for empdb using HADR_LOCAL_HOST db2_standby
+db2 update db cfg for empdb using HADR_REMOTE_HOST db2_primary
+db2 update db cfg for empdb using HADR_REMOTE_INST db2inst1
+db2 update db cfg for empdb using HADR_REMOTE_SVC 50000
+db2 update db cfg for empdb using HADR_SYNCMODE NEARSYNC
+db2 update db cfg for empdb using LOGINDEXBUILD ON
+
+#on standby first
+db2 start hadr on db empdb as standby
+
+
+docker exec -it db2_primary bash
+su - db2inst1
+db2 start hadr on db empdb as primary
+
+
+db2pd -db empdb -hadr
+
+db2 connect to empdb
+db2 "SELECT HADR_ROLE, HADR_STATE, HADR_CONNECT_STATUS FROM TABLE (MON_GET_HADR(NULL, -1)) AS H"
+
+db2 connect to empdb
+db2 takeover hadr on database empdb
+
+db2 connect to empdb
+db2 "SELECT HADR_ROLE, HADR_STATE FROM TABLE (MON_GET_HADR(NULL, -1)) AS H"
+
+docker restart db2_primary
+
