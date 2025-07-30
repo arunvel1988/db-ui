@@ -178,6 +178,21 @@ db2 update db cfg for empdb using HADR_REMOTE_SVC 50000
 db2 update db cfg for empdb using HADR_SYNCMODE NEARSYNC
 db2 update db cfg for empdb using LOGINDEXBUILD ON
 
+
+
+###########################################################################################
+docker exec -it db2_primary bash
+su - db2inst1
+db2 get db cfg for empdb | grep "Path to log files"
+docker cp db2_primary:/database/logs $HOME/db2data_standby/
+docker cp db2_primary:/database/logs $HOME/db2data_standby/
+docker cp $HOME/db2data_standby/logs db2_standby:/database/
+# standby
+db2 get db cfg for empdb | grep "Path to log files"
+db2 stop db empdb
+db2 start db empdb
+
+#######################################################################################
 #on standby first
 db2 start hadr on db empdb as standby
 
