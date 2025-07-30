@@ -169,7 +169,8 @@ su - db2inst1
 
 db2 restore db empdb from /database taken at <timestamp> into empdb
 # Use actual timestamp from backup filename
-
+db2 restore db empdb from /database taken at 20250730071720 into empdb
+###############################
 db2 update db cfg for empdb using HADR_LOCAL_HOST db2_standby
 db2 update db cfg for empdb using HADR_REMOTE_HOST db2_primary
 db2 update db cfg for empdb using HADR_REMOTE_INST db2inst1
