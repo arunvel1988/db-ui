@@ -1,0 +1,37 @@
+mkdir config
+
+nano config/server.xml
+
+<server description="Sample Liberty Server">
+
+    <featureManager>
+        <feature>servlet-4.0</feature>
+        <feature>adminCenter-1.0</feature>
+        <feature>appSecurity-3.0</feature>
+        <feature>basicAuthentication-1.0</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
+                  httpPort="9080"
+                  httpsPort="9443" />
+
+    <remoteFileAccess>
+        <writeDir>${server.config.dir}</writeDir>
+    </remoteFileAccess>
+
+    <basicRegistry id="basic" realm="defaultRealm">
+        <user name="admin" password="admin123" />
+    </basicRegistry>
+
+</server>
+
+
+cd config
+wget https://tomcat.apache.org/tomcat-6.0-doc/appdev/sample/sample.war
+
+docker run -d --name liberty \
+  -p 9080:9080 -p 9443:9443 \
+  -v $(pwd)/config/server.xml:/config/server.xml \
+  -v $(pwd)/config/sample.war:/config/dropins/sample.war \
+  icr.io/appcafe/websphere-liberty:25.0.0.6-full-java21-openj9-ubi-minimal
