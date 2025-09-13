@@ -1,0 +1,4 @@
+docker exec -i ecommerce-postgres psql -U postgres -c "CREATE DATABASE ecommerce;"
+
+
+docker exec -i ecommerce-postgres psql -U postgres -d ecommerce < ecomm-postgres.sql
