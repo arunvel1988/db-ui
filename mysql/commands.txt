@@ -2,3 +2,6 @@ docker exec -i ecommerce-postgres psql -U postgres -c "CREATE DATABASE ecommerce
 
 
 docker exec -i ecommerce-postgres psql -U postgres -d ecommerce < ecomm-postgres.sql
+
+
+docker exec -i ecommerce-mysql mysql -u root -psecret < ecomm.sql
