@@ -3,7 +3,113 @@ mysql -uroot -prootpass
 
 mysql> SHOW DATABASES;
 
+######################################################################### begin ############################################
 
+CREATE DATABASE ecomm;
+USE ecomm;
+
+-- Customers Table
+CREATE TABLE Customers (
+  CustomerID SERIAL PRIMARY KEY,
+  Name VARCHAR(50),
+  Email VARCHAR(100) UNIQUE,
+  Phone VARCHAR(15)
+);
+
+-- Products Table
+CREATE TABLE Products (
+  ProductID SERIAL PRIMARY KEY,
+  ProductName VARCHAR(100),
+  Price DECIMAL(10,2)
+);
+
+-- Orders Table
+CREATE TABLE Orders (
+  OrderID SERIAL PRIMARY KEY,
+  CustomerID INT,
+  OrderDate DATE,
+  TotalAmount DECIMAL(10,2),
+  FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+-- OrderDetails Table
+CREATE TABLE OrderDetails (
+  OrderDetailID SERIAL PRIMARY KEY,
+  OrderID INT,
+  ProductID INT,
+  Quantity INT,
+  FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+  FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+##################################################################################
+
+-- Customers
+INSERT INTO Customers (Name, Email, Phone) VALUES
+('Arun', 'arun@shop.com', '9876543210'),
+('Meena', 'meena@shop.com', '9876543222'),
+('Rahul', 'rahul@shop.com', '9876543233');
+
+-- Products
+INSERT INTO Products (ProductName, Price) VALUES
+('iPhone 15', 70000),
+('Dell XPS Laptop', 95000),
+('Sony Headphones', 5000);
+
+-- Orders
+INSERT INTO Orders (CustomerID, OrderDate, TotalAmount) VALUES
+(1, '2025-09-01', 75000),
+(2, '2025-09-02', 5000),
+(1, '2025-09-03', 95000);
+
+-- Order Details
+INSERT INTO OrderDetails (OrderID, ProductID, Quantity) VALUES
+(1, 1, 1),   -- Arun bought iPhone
+(2, 3, 1),   -- Meena bought Headphones
+(3, 2, 1),   -- Arun bought Laptop
+(3, 3, 2);   -- Arun also bought 2 Headphones
+
+#############################################################################
+
+SELECT * FROM Customers;
+#########################################################
+BEGIN;  -- start transaction
+INSERT INTO Orders (CustomerID, OrderDate, TotalAmount) VALUES (3, '2025-09-04', 10000);
+ROLLBACK;  -- cancel transaction
+SELECT * FROM Orders; -- shows no new order
+##################################################################
+
+ALTER TABLE Customers ADD COLUMN Address VARCHAR(200);
+
+################################################
+UPDATE Products SET Price = 68000 WHERE ProductName = 'iPhone 15';
+DELETE FROM Customers WHERE Name = 'Rahul';
+
+#########################################################
+
+SELECT Name, Email FROM Customers WHERE CustomerID = 1;
+##################################################
+
+SELECT COUNT(*) FROM Orders;                 -- Total orders
+SELECT SUM(TotalAmount) FROM Orders;         -- Total revenue
+SELECT AVG(TotalAmount) FROM Orders;         -- Avg order value
+SELECT MAX(TotalAmount) FROM Orders;         -- Largest order
+
+######################################################
+
+SELECT Customers.Name, Orders.OrderID, Orders.TotalAmount
+FROM Customers
+INNER JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
+
+
+####################################################
+
+SELECT Customers.Name, Orders.OrderID
+FROM Customers
+LEFT JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
+################################################# end #####################################################
+
+
+#############################################################################
 CREATE DATABASE my_app_db;
 
 #####################################################
