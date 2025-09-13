@@ -75,6 +75,8 @@ INSERT INTO OrderDetails (OrderID, ProductID, Quantity) VALUES
 (3, 2, 1),   -- Arun bought Laptop
 (3, 3, 2);   -- Arun also bought 2 Headphones
 
+
+#########################################################################################################
 -- ===================
 -- 3. DEMO QUERIES
 -- ===================
